@@ -93,7 +93,7 @@ def summarize(user_message):
         "messages": [
             {"role": "user", "content": f"{instructions}. \n\n NEWS in CSV format: {user_message}"}
         ],
-        "temperature": 0.9
+        "temperature": 0.75
     }
     
     response = requests.post(
