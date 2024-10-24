@@ -1,0 +1,6 @@
+feedparser
+python-telegram-bot
+python-dotenv
+requests
+asyncio
+bs4
