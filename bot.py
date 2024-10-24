@@ -171,6 +171,8 @@ async def send_message(text):
 async def main():
     entries = fetch_feeds(feed_urls)
 
+    print("Found:", len(entries), "entries" )
+
     filtered_entries = filter_entries_last_24_hours(entries)
 
     if not filtered_entries:
