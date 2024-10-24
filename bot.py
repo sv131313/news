@@ -27,6 +27,7 @@ else:
 
 # Get feed URLs from environment variable
 feed_urls_env = os.getenv('FEED_URLS')
+print(feed_urls_env)
 if feed_urls_env:
     feed_urls = [url.strip() for url in feed_urls_env.split(',')]
 else:
