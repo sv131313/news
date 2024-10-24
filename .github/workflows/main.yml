@@ -16,15 +16,11 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Create instructions file
-        env:
-          INSTRUCTIONS: ${{ secrets.INSTRUCTIONS }}
-        run: |
-          echo "${{ secrets.INSTRUCTIONS }}" > .instructions
       - name: Run the script
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           INSTRUCTIONS: ${{ secrets.INSTRUCTIONS }}
+          FEED_URLS: ${{ secrets.FEED_URLS }}
         run: python bot.py
