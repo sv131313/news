@@ -22,4 +22,5 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           INSTRUCTIONS: ${{ secrets.INSTRUCTIONS }}
+          FEED_URLS: ${{ secrets.FEED_URLS }}
         run: python bot.py
