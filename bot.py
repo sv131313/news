@@ -19,8 +19,11 @@ openai_api_key = os.getenv('OPENAI_API_KEY')
 telegram_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 telegram_chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
-with open('.instructions', 'r') as file:
-    instructions = file.read()
+if os.getenv('INSTRUCTIONS'):
+    instructions = os.getenv('INSTRUCTIONS')
+else:
+    with open('.instructions', 'r') as file:
+        instructions = file.read()
 
 # Get feed URLs from environment variable
 feed_urls_env = os.getenv('FEED_URLS')
