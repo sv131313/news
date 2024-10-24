@@ -3,6 +3,7 @@ import csv
 import io
 import requests
 import json
+import re
 import asyncio
 from telegram.ext import Updater
 from telegram import Update, Bot
@@ -123,26 +124,42 @@ async def get_response(thread_id):
 
 
 def split_message(text, max_length=4000):
-    """Split a message into chunks of specified maximum length."""
+    """Split a message into chunks of specified maximum length without breaking Markdown formatting."""
     out_messages = []
     current_message = ""
     
-    # Split the text into paragraphs
+    # Regular expression to detect Markdown entities
+    markdown_entity_pattern = r"(_|\*|`|~|\[|\])"
+    
     paragraphs = text.split('\n')
+    open_entities = []
     
     for paragraph in paragraphs:
         # If adding this paragraph would exceed max_length
         if len(current_message) + len(paragraph) + 1 > max_length:
-            # Save current message and start a new one
-            if current_message:
-                out_messages.append(current_message.strip())
+            # Make sure to close any open Markdown entities
+            for entity in open_entities:
+                current_message += entity
+            
+            out_messages.append(current_message.strip())
             current_message = paragraph + '\n'
+            open_entities = []  # Reset open entities after a split
         else:
             # Add paragraph to current message
             current_message += paragraph + '\n'
+            # Track open Markdown entities
+            for match in re.finditer(markdown_entity_pattern, paragraph):
+                entity = match.group()
+                if entity in open_entities:
+                    open_entities.remove(entity)
+                else:
+                    open_entities.append(entity)
     
     # Add the last message if it's not empty
     if current_message:
+        # Close any open Markdown entities
+        for entity in open_entities:
+            current_message += entity
         out_messages.append(current_message.strip())
     
     return out_messages
