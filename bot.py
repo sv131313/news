@@ -86,7 +86,7 @@ def summarize(user_message):
         "Authorization": f"Bearer {openai_api_key}"
     }
     
-    openai_model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    openai_model = os.getenv("OPENAI_MODEL", "gpt4.1-mini")
 
     data = {
         "model": openai_model,
