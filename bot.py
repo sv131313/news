@@ -17,6 +17,7 @@ load_dotenv()
 
 # API keys and tokens
 openai_api_key = os.getenv('OPENAI_API_KEY')
+openai_model = os.getenv('OPENAI_MODEL')
 telegram_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 telegram_chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
@@ -87,7 +88,7 @@ def summarize(user_message):
     }
     
     data = {
-        "model": "gpt-4.1-mini",
+        "model": openai_model,
         "messages": [
             {"role": "user", "content": f"{instructions}. \n\n NEWS in CSV format: {user_message}"}
         ],
