@@ -87,7 +87,7 @@ def summarize(user_message):
     }
     
     data = {
-        "model": "gpt-4o",
+        "model": "gpt-4.1-mini",
         "messages": [
             {"role": "user", "content": f"{instructions}. \n\n NEWS in CSV format: {user_message}"}
         ],
