@@ -53,9 +53,8 @@ def filter_entries_last_24_hours(entries):
 
     for entry in entries:
         if hasattr(entry, 'published_parsed'):
-            published = datetime.fromtimestamp(
-                datetime(*entry.published_parsed[:6]).timestamp(),
-                tz=timezone.utc
+            published = datetime(
+                *entry.published_parsed[:6], tzinfo=timezone.utc
             ).astimezone(timezone(timedelta(hours=3)))  # Convert to GMT+3
             if published >= last_24_hours:
                 filtered_entries.append(entry)
@@ -68,9 +67,8 @@ def create_csv_data(entries):
     csv_writer.writerow(['Date', 'Title', 'Description', 'Link'])
 
     for entry in entries:
-        published = datetime.fromtimestamp(
-            datetime(*entry.published_parsed[:6]).timestamp(),
-            tz=timezone.utc
+        published = datetime(
+            *entry.published_parsed[:6], tzinfo=timezone.utc
         ).astimezone(timezone(timedelta(hours=3)))  # Convert to GMT+3
         title = BeautifulSoup(entry.title, 'html.parser').get_text()  # Remove HTML tags from title
         description = BeautifulSoup(entry.summary, 'html.parser').get_text()  # Remove HTML tags from description
