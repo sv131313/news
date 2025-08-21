@@ -47,18 +47,37 @@ def fetch_feeds(feed_urls):
             print(f"Error fetching {url}: {e}")
     return entries
 
+
+def parse_published(entry):
+    """Return publication datetime in GMT+3 timezone."""
+    published_dt = None
+
+    if getattr(entry, "published_parsed", None):
+        published_dt = datetime(
+            *entry.published_parsed[:6], tzinfo=timezone.utc
+        )
+    elif getattr(entry, "published", None):
+        try:
+            published_dt = datetime.strptime(
+                entry.published.strip(), "%a, %m/%d/%Y - %H:%M"
+            ).replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+
+    if published_dt is None:
+        return None
+
+    return published_dt.astimezone(timezone(timedelta(hours=3)))
+
 def filter_entries_last_24_hours(entries):
     filtered_entries = []
     now = datetime.now(timezone(timedelta(hours=3)))  # Current time in GMT+3
     last_24_hours = now - timedelta(hours=24)
 
     for entry in entries:
-        if hasattr(entry, 'published_parsed'):
-            published = datetime(
-                *entry.published_parsed[:6], tzinfo=timezone.utc
-            ).astimezone(timezone(timedelta(hours=3)))  # Convert to GMT+3
-            if published >= last_24_hours:
-                filtered_entries.append(entry)
+        published = parse_published(entry)
+        if published and published >= last_24_hours:
+            filtered_entries.append(entry)
 
     return filtered_entries
 
@@ -68,9 +87,9 @@ def create_csv_data(entries):
     csv_writer.writerow(['Date', 'Title', 'Description', 'Link'])
 
     for entry in entries:
-        published = datetime(
-            *entry.published_parsed[:6], tzinfo=timezone.utc
-        ).astimezone(timezone(timedelta(hours=3)))  # Convert to GMT+3
+        published = parse_published(entry)
+        if not published:
+            continue
         title = BeautifulSoup(entry.title, 'html.parser').get_text()  # Remove HTML tags from title
         description = BeautifulSoup(entry.summary, 'html.parser').get_text()  # Remove HTML tags from description
         csv_writer.writerow([published.strftime('%Y-%m-%d %H:%M:%S'), title, description, entry.link])
