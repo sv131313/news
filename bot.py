@@ -96,50 +96,85 @@ def create_csv_data(entries):
 
     return output.getvalue()
 
-import requests
-import json
+def _extract_text(response_json: dict) -> str:
+    # 1) Responses API: SDK has "output_text", raw JSON has array "output"
+    if "output_text" in response_json and response_json["output_text"]:
+        return response_json["output_text"]
+    if "output" in response_json and isinstance(response_json["output"], list):
+        texts = []
+        for item in response_json["output"]:
+            # typical item from Responses API
+            if item.get("type") == "output_text" and "text" in item:
+                texts.append(item["text"])
+            # sometimes text is nested within message->content
+            if item.get("type") == "message":
+                for c in item.get("content", []):
+                    if c.get("type") == "output_text" and "text" in c:
+                        texts.append(c["text"])
+        if texts:
+            return "".join(texts)
+    # 2) Chat Completions fallback
+    if "choices" in response_json:
+        msg = response_json["choices"][0].get("message", {})
+        if "content" in msg:
+            return msg["content"]
+    return ""
 
-def summarize(user_message):
 
+def summarize(
+    user_message: str,
+    instructions: str,
+    openai_api_key: str,
+    model: str = "gpt-5",
+    temperature: float | None = None,
+    top_p: float | None = None,
+    extra: dict | None = None,
+) -> str:
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai_api_key}"
+        "Authorization": f"Bearer {openai_api_key}",
     }
-    
-    data = {
-        "model": openai_model,
-        "messages": [
-            {"role": "user", "content": f"{instructions}. \n\n NEWS in CSV format: {user_message}"}
+
+    # Minimal payload compatible with Responses API
+    payload = {
+        "model": model,
+        "input": [
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": f"NEWS in CSV format:\n{user_message}"},
         ],
-        "temperature": 0.75
     }
-    
-    response = requests.post(
-        "https://api.openai.com/v1/chat/completions",
-        headers=headers,
-        data=json.dumps(data)
-    )
-    
-    if response.status_code == 200:
-        response_json = response.json()
-        summary = response_json['choices'][0]['message']['content']
-        return summary
-    else:
-        return f"Error: {response.status_code} - {response.text}"
 
+    # Add parameters ONLY if explicitly provided
+    if temperature is not None:
+        payload["temperature"] = float(temperature)
+    if top_p is not None:
+        payload["top_p"] = float(top_p)
+    if extra:
+        payload.update(extra)
 
-async def get_response(thread_id):
-    messages = await client.beta.threads.messages.list(thread_id=thread_id)
-    message_content = messages.data[0].content[0].text
+    def _post(p):
+        return requests.post(
+            "https://api.openai.com/v1/responses",
+            headers=headers,
+            data=json.dumps(p),
+        )
 
-    # Remove annotations
-    annotations = message_content.annotations
-    for annotation in annotations:
-        message_content.value = message_content.value.replace(annotation.text, '')
+    resp = _post(payload)
+    if resp.status_code == 200:
+        return _extract_text(resp.json())
 
-    response_message = message_content.value
-    return response_message
+    # Remove unsupported args and retry once
+    if resp.status_code in (400, 422):
+        body = resp.text
+        bad_fields = set(re.findall(r"Unrecognized request argument: (\w+)", body))
+        if bad_fields:
+            safe_payload = {k: v for k, v in payload.items() if k not in bad_fields}
+            resp2 = _post(safe_payload)
+            if resp2.status_code == 200:
+                return _extract_text(resp2.json())
+            return f"Error after retry: {resp2.status_code} - {resp2.text}"
 
+    return f"Error: {resp.status_code} - {resp.text}"
 
 def split_message(text, max_length=4000):
     """Split a message into chunks of specified maximum length without breaking Markdown formatting."""
@@ -217,7 +252,12 @@ async def main():
 
     csv_data = create_csv_data(filtered_entries)
 
-    summary = summarize(csv_data)
+    summary = summarize(
+        csv_data,
+        instructions,
+        openai_api_key,
+        model=openai_model or "gpt-5",
+    )
 
     if summary:
         await send_message(summary)
