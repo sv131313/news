@@ -105,41 +105,38 @@ def summarize(user_message):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {openai_api_key}"
     }
-    
+
     data = {
         "model": openai_model,
-        "messages": [
-            {"role": "user", "content": f"{instructions}. \n\n NEWS in CSV format: {user_message}"}
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"{instructions}. \n\n NEWS in CSV format: {user_message}"
+                    }
+                ]
+            }
         ],
         "temperature": 0.75
     }
-    
+
     response = requests.post(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.openai.com/v1/responses",
         headers=headers,
         data=json.dumps(data)
     )
-    
+
     if response.status_code == 200:
         response_json = response.json()
-        summary = response_json['choices'][0]['message']['content']
+        try:
+            summary = response_json["output"][0]["content"][0]["text"]
+        except (KeyError, IndexError):
+            return "Error: Unexpected response format"
         return summary
     else:
         return f"Error: {response.status_code} - {response.text}"
-
-
-async def get_response(thread_id):
-    messages = await client.beta.threads.messages.list(thread_id=thread_id)
-    message_content = messages.data[0].content[0].text
-
-    # Remove annotations
-    annotations = message_content.annotations
-    for annotation in annotations:
-        message_content.value = message_content.value.replace(annotation.text, '')
-
-    response_message = message_content.value
-    return response_message
-
 
 def split_message(text, max_length=4000):
     """Split a message into chunks of specified maximum length without breaking Markdown formatting."""

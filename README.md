@@ -1,6 +1,6 @@
 # News Telegram Bot
 
-This script collects news from RSS feeds, summarizes the content with the OpenAI API and sends the result to a Telegram group.
+This script collects news from RSS feeds, summarizes the content with the OpenAI Responses API and sends the result to a Telegram group.
 
 ## Installation
 1. Clone this repository and navigate into it.
