@@ -8,21 +8,6 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - openai_api_key: OPENAI_API_KEY
-            openai_model: OPENAI_MODEL
-            telegram_bot_token: TELEGRAM_BOT_TOKEN
-            telegram_chat_id: TELEGRAM_CHAT_ID
-            instructions: INSTRUCTIONS
-            feed_urls: FEED_URLS
-          - openai_api_key: OPENAI_API_KEY2
-            openai_model: OPENAI_MODEL2
-            telegram_bot_token: TELEGRAM_BOT_TOKEN2
-            telegram_chat_id: TELEGRAM_CHAT_ID2
-            instructions: INSTRUCTIONS2
-            feed_urls: FEED_URLS2
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -33,10 +18,10 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run the script
         env:
-          OPENAI_API_KEY: ${{ secrets[matrix.openai_api_key] }}
-          OPENAI_MODEL: ${{ secrets[matrix.openai_model] }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets[matrix.telegram_bot_token] }}
-          TELEGRAM_CHAT_ID: ${{ secrets[matrix.telegram_chat_id] }}
-          INSTRUCTIONS: ${{ secrets[matrix.instructions] }}
-          FEED_URLS: ${{ secrets[matrix.feed_urls] }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          INSTRUCTIONS: ${{ secrets.INSTRUCTIONS }}
+          FEED_URLS: ${{ secrets.FEED_URLS }}
         run: python bot.py
