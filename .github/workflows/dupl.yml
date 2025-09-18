@@ -1,0 +1,27 @@
+name: Daily RSS Aggregator 2
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Runs every day at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run the script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY2 }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL2 }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN2 }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID2 }}
+          INSTRUCTIONS: ${{ secrets.INSTRUCTIONS2 }}
+          FEED_URLS: ${{ secrets.FEED_URLS2 }}
+        run: python bot.py
