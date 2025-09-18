@@ -5,6 +5,7 @@ import requests
 import json
 import re
 import asyncio
+from typing import Optional
 from telegram.ext import Updater
 from telegram import Update, Bot
 from dotenv import load_dotenv
@@ -126,9 +127,9 @@ def summarize(
     instructions: str,
     openai_api_key: str,
     model: str = "gpt-5",
-    temperature: float | None = None,
-    top_p: float | None = None,
-    extra: dict | None = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    extra: Optional[dict] = None,
 ) -> str:
     headers = {
         "Content-Type": "application/json",
